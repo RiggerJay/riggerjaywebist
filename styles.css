@@ -94,8 +94,10 @@ img {
 .social-link {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 10px;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.02);
@@ -104,11 +106,13 @@ img {
   line-height: 1;
 }
 
+.social-link img,
 .social-link svg {
-  width: 12px;
-  height: 12px;
+  width: 15px;
+  height: 15px;
   display: block;
   flex-shrink: 0;
+  object-fit: contain;
 }
 
 .social-link:hover,
