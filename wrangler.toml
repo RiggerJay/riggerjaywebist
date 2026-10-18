@@ -6,5 +6,5 @@ binding = "R2_PHOTOGRAPHY"
 bucket_name = "riggerjayphotography"
 
 [vars]
-PUBLIC_R2_BASE_URL = "https://riggerjayphotography.r2.dev"
+PUBLIC_R2_BASE_URL = "https://photos.riggerjay.com"
 SITE_TITLE = "RiggerJay Photography"
