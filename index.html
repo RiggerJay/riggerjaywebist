@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RiggerJay Photography</title>
+    <meta
+      name="description"
+      content="Photography galleries for RiggerJay, featuring portrait, travel, and everyday storytelling collections."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="brand">
+          <span class="brand-mark">RJ</span>
+          <span>RiggerJay</span>
+        </div>
+        <nav>
+          <a href="#gallery">Galleries</a>
+          <a href="#about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-inner">
+          <div class="hero-copy">
+            <p class="eyebrow">Photography Portfolio</p>
+            <h1>Moments that feel lived in.</h1>
+            <p class="intro">
+              A simple collection of galleries built from the folders in the R2 bucket. Each album is its own story, with images pulled directly from the storage bucket.
+            </p>
+            <div class="cta-row">
+              <a class="button primary" href="#gallery">View Galleries</a>
+              <a class="button secondary" href="#about">Learn More</a>
+            </div>
+          </div>
+          <div class="hero-card">
+            <div id="featuredGrid" class="mini-grid" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="gallery" class="gallery-section">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">Collections</p>
+            <h2>Latest galleries</h2>
+          </div>
+          <div id="galleryGrid" class="gallery-grid" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section id="about" class="about-section">
+        <div class="container about-box">
+          <div>
+            <p class="eyebrow">About</p>
+            <h2>Simple, visual, and easy to maintain.</h2>
+          </div>
+          <p>
+            This gallery is connected to the R2 bucket. Every subfolder becomes a gallery automatically, and the site displays the gallery title from the folder name.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <template id="galleryCardTemplate">
+      <article class="gallery-card">
+        <div class="image-wrap">
+          <img src="" alt="" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <h3></h3>
+          <p class="meta"></p>
+        </div>
+      </article>
+    </template>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
