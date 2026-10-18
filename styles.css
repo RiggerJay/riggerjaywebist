@@ -81,16 +81,35 @@ img {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   flex-wrap: wrap;
   color: var(--muted);
   font-size: 0.9rem;
 }
 
-.nav-links a:hover,
-.footer-links a:hover,
-.social-list a:hover {
+.link-text {
+  opacity: 0.8;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
   color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.social-link:hover,
+.nav-links a:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .page-shell {
@@ -103,9 +122,9 @@ img {
 
 .hero-inner {
   display: grid;
-  grid-template-columns: 0.92fr 1.08fr;
+  grid-template-columns: 0.72fr 1.28fr;
   align-items: center;
-  gap: 40px;
+  gap: 32px;
 }
 
 .eyebrow {
@@ -129,32 +148,6 @@ h1 {
   color: var(--muted);
   font-size: 1.08rem;
   line-height: 1.7;
-}
-
-.cta-row {
-  margin-top: 28px;
-}
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 46px;
-  padding: 0 18px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-
-.button:hover {
-  transform: translateY(-1px);
-}
-
-.button.primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  color: #16181d;
-  border-color: transparent;
-  font-weight: 700;
 }
 
 .hero-card {
