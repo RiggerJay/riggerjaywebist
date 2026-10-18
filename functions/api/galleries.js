@@ -25,32 +25,40 @@ export async function onRequestGet({ env }) {
   }
 
   try {
-    const root = await bucket.list({ delimiter: '/' });
+    const root = await bucket.list();
     const baseUrl = env.PUBLIC_R2_BASE_URL || 'https://riggerjayphotography.r2.dev';
 
-    const homepagePhotos = (root.objects || [])
+    const allObjects = root.objects || [];
+    const homepagePhotos = allObjects
       .filter((object) => !object.key.endsWith('/') && !object.key.includes('/'))
       .map((object) => buildPublicUrl(baseUrl, object.key));
 
-    const galleries = [];
+    const galleryMap = new Map();
 
-    for (const prefix of root.commonPrefixes || []) {
-      const folderName = prefix.replace(/\/$/, '').split('/').pop();
+    for (const object of allObjects) {
+      const key = object.key.replace(/^\/+/, '');
+      if (!key || key.endsWith('/')) continue;
+      if (!key.includes('/')) continue;
+
+      const folderName = key.split('/')[0];
       if (!folderName) continue;
 
-      const folderListing = await bucket.list({ prefix, delimiter: '/' });
-      const images = (folderListing.objects || [])
-        .filter((object) => !object.key.endsWith('/'))
-        .map((object) => buildPublicUrl(baseUrl, object.key));
-
-      galleries.push({
+      const existing = galleryMap.get(folderName) || {
         name: toTitle(folderName),
         slug: folderName,
-        count: images.length,
-        cover: images[0] || '',
-        images
-      });
+        count: 0,
+        cover: '',
+        images: []
+      };
+
+      const imageUrl = buildPublicUrl(baseUrl, key);
+      existing.images.push(imageUrl);
+      existing.count = existing.images.length;
+      existing.cover = existing.cover || imageUrl;
+      galleryMap.set(folderName, existing);
     }
+
+    const galleries = Array.from(galleryMap.values());
 
     return Response.json({
       galleries,
