@@ -16,30 +16,38 @@
   <body>
     <header class="topbar">
       <div class="container nav">
-        <div class="brand">
+        <div class="brand" aria-label="RiggerJay Photography home">
           <span class="brand-mark">RJ</span>
           <span>RiggerJay</span>
         </div>
-        <nav>
+        <nav class="nav-links" aria-label="Main navigation">
           <a href="#gallery">Galleries</a>
-          <a href="#about">About</a>
+          <a href="https://www.instagram.com/riggerjay_photo/" target="_blank" rel="noreferrer">Instagram</a>
+          <a href="https://bsky.app/profile/riggerjay.bsky.social" target="_blank" rel="noreferrer">Bluesky</a>
+          <a href="https://fetlife.com/RiggerJay" target="_blank" rel="noreferrer">FetLife</a>
+          <a href="https://www.reddit.com/user/rj_photo/" target="_blank" rel="noreferrer">Reddit</a>
         </nav>
       </div>
     </header>
 
-    <main>
+    <main class="page-shell">
       <section class="hero">
         <div class="container hero-inner">
           <div class="hero-copy">
-            <p class="eyebrow">Photography Portfolio</p>
-            <h1>Moments that feel lived in.</h1>
+            <p class="eyebrow">Photography</p>
+            <h1>RiggerJay</h1>
             <p class="intro">
-              A simple collection of galleries built from the folders in the R2 bucket. Each album is its own story, with images pulled directly from the storage bucket.
+              Portraits, street moments, and everyday scenes captured with a simple, honest eye.
             </p>
             <div class="cta-row">
-              <a class="button primary" href="#gallery">View Galleries</a>
-              <a class="button secondary" href="#about">Learn More</a>
+              <a class="button primary" href="#gallery">Browse photos</a>
             </div>
+            <ul class="social-list" aria-label="Social links">
+              <li><a href="https://www.instagram.com/riggerjay_photo/" target="_blank" rel="noreferrer">Instagram</a></li>
+              <li><a href="https://bsky.app/profile/riggerjay.bsky.social" target="_blank" rel="noreferrer">Bluesky</a></li>
+              <li><a href="https://fetlife.com/RiggerJay" target="_blank" rel="noreferrer">FetLife</a></li>
+              <li><a href="https://www.reddit.com/user/rj_photo/" target="_blank" rel="noreferrer">Reddit</a></li>
+            </ul>
           </div>
           <div class="hero-card">
             <div id="featuredGrid" class="mini-grid" aria-live="polite"></div>
@@ -51,24 +59,24 @@
         <div class="container">
           <div class="section-heading">
             <p class="eyebrow">Collections</p>
-            <h2>Latest galleries</h2>
+            <h2>Recent galleries</h2>
           </div>
           <div id="galleryGrid" class="gallery-grid" aria-live="polite"></div>
         </div>
       </section>
-
-      <section id="about" class="about-section">
-        <div class="container about-box">
-          <div>
-            <p class="eyebrow">About</p>
-            <h2>Simple, visual, and easy to maintain.</h2>
-          </div>
-          <p>
-            This gallery is connected to the R2 bucket. Every subfolder becomes a gallery automatically, and the site displays the gallery title from the folder name.
-          </p>
-        </div>
-      </section>
     </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <span>RiggerJay Photography</span>
+        <div class="footer-links">
+          <a href="https://www.instagram.com/riggerjay_photo/" target="_blank" rel="noreferrer">Instagram</a>
+          <a href="https://bsky.app/profile/riggerjay.bsky.social" target="_blank" rel="noreferrer">Bluesky</a>
+          <a href="https://fetlife.com/RiggerJay" target="_blank" rel="noreferrer">FetLife</a>
+          <a href="https://www.reddit.com/user/rj_photo/" target="_blank" rel="noreferrer">Reddit</a>
+        </div>
+      </div>
+    </footer>
 
     <template id="galleryCardTemplate">
       <article class="gallery-card">
