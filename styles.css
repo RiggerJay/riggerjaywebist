@@ -129,8 +129,16 @@ img {
 .hero-inner {
   display: grid;
   grid-template-columns: 0.72fr 1.28fr;
-  align-items: center;
+  align-items: start;
   gap: 32px;
+}
+
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .eyebrow {
