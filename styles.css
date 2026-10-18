@@ -410,6 +410,22 @@ h1 {
   font-weight: 600;
 }
 
+.journal-list {
+  margin: 20px 0 28px;
+  padding-left: 1.3rem;
+  list-style: disc;
+}
+
+.journal-list li + li {
+  margin-top: 12px;
+}
+
+.journal-list a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
 @media (max-width: 760px) {
   .nav {
     flex-direction: column;
