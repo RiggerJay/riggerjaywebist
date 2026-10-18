@@ -157,24 +157,6 @@ h1 {
   font-weight: 700;
 }
 
-.social-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 14px;
-  list-style: none;
-  padding: 0;
-  margin: 26px 0 0;
-  color: var(--muted);
-  font-size: 0.92rem;
-}
-
-.social-list li {
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.02);
-}
-
 .hero-card {
   padding: 18px;
   border: 1px solid var(--line);
@@ -267,26 +249,6 @@ h1 {
   margin: 10px 0 0;
   color: var(--muted);
   font-size: 0.9rem;
-}
-
-.site-footer {
-  border-top: 1px solid var(--line);
-  padding: 26px 0 40px;
-}
-
-.footer-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.footer-links {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
 }
 
 .empty-state {
