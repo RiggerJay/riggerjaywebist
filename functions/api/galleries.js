@@ -26,7 +26,10 @@ export async function onRequestGet({ env }) {
 
   try {
     const root = await bucket.list();
-    const baseUrl = env.PUBLIC_R2_BASE_URL || 'https://riggerjayphotography.r2.dev';
+    const configuredBaseUrl = env.PUBLIC_R2_BASE_URL || 'https://photos.riggerjay.com';
+    const baseUrl = configuredBaseUrl
+      .replace(/^https?:\/\/riggerjayphotography\.r2\.dev$/i, 'https://photos.riggerjay.com')
+      .replace(/\/$/, '');
 
     const allObjects = root.objects || [];
     const homepagePhotos = allObjects
