@@ -144,6 +144,23 @@ img {
   text-align: left;
 }
 
+.intro-links {
+  margin: 10px 0 0;
+  padding-left: 1.2rem;
+  color: var(--muted);
+  list-style: disc;
+}
+
+.intro-links li + li {
+  margin-top: 8px;
+}
+
+.intro-links a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
 .eyebrow {
   margin: 0 0 16px;
   font-size: 0.76rem;
