@@ -145,9 +145,11 @@
     </template>
 
     <dialog id="imageDialog" class="image-dialog" aria-label="Full-size image preview">
-      <div class="dialog-panel">
+      <div id="lightboxPanel" class="dialog-panel">
         <button id="closeDialog" class="dialog-close" type="button" aria-label="Close image preview">×</button>
+        <button id="prevLightbox" class="lightbox-nav lightbox-prev" type="button" aria-label="Previous image">‹</button>
         <img id="dialogImage" src="" alt="Full-size gallery image" />
+        <button id="nextLightbox" class="lightbox-nav lightbox-next" type="button" aria-label="Next image">›</button>
       </div>
     </dialog>
 

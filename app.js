@@ -9,12 +9,48 @@ const galleryDialogTitle = document.querySelector('#galleryDialogTitle');
 const galleryDialogMeta = document.querySelector('#galleryDialogMeta');
 const galleryDialogGrid = document.querySelector('#galleryDialogGrid');
 const closeGalleryDialogButton = document.querySelector('#closeGalleryDialog');
+const lightboxPanel = document.querySelector('#lightboxPanel');
+const prevLightboxButton = document.querySelector('#prevLightbox');
+const nextLightboxButton = document.querySelector('#nextLightbox');
 
-function openLightbox(src, alt = 'Full-size gallery image') {
+let currentLightboxImages = [];
+let currentLightboxIndex = -1;
+let touchStartX = 0;
+let touchStartY = 0;
+let touchTracking = false;
+
+function updateLightboxNavigation() {
+  if (!prevLightboxButton || !nextLightboxButton) return;
+
+  const hasMultipleImages = currentLightboxImages.length > 1;
+  prevLightboxButton.hidden = !hasMultipleImages;
+  nextLightboxButton.hidden = !hasMultipleImages;
+  prevLightboxButton.disabled = !hasMultipleImages;
+  nextLightboxButton.disabled = !hasMultipleImages;
+}
+
+function showLightboxImage(index) {
+  if (!lightboxImage || index < 0 || index >= currentLightboxImages.length) return;
+
+  currentLightboxIndex = index;
+  const image = currentLightboxImages[index];
+  lightboxImage.src = image.src;
+  lightboxImage.alt = image.alt;
+  updateLightboxNavigation();
+}
+
+function openLightbox(src, alt = 'Full-size gallery image', options = {}) {
   if (!lightboxDialog || !lightboxImage) return;
 
-  lightboxImage.src = src;
-  lightboxImage.alt = alt;
+  const imageList = Array.isArray(options.images) ? options.images : [];
+  const activeIndex = typeof options.index === 'number' ? options.index : imageList.findIndex((image) => image.src === src);
+
+  currentLightboxImages = imageList.length
+    ? imageList
+    : [{ src, alt }];
+  currentLightboxIndex = activeIndex >= 0 ? activeIndex : 0;
+
+  showLightboxImage(currentLightboxIndex);
 
   if (typeof lightboxDialog.showModal === 'function') {
     lightboxDialog.showModal();
@@ -26,6 +62,10 @@ function openLightbox(src, alt = 'Full-size gallery image') {
 
 function closeLightbox() {
   if (!lightboxDialog) return;
+
+  currentLightboxImages = [];
+  currentLightboxIndex = -1;
+  updateLightboxNavigation();
 
   if (typeof lightboxDialog.close === 'function') {
     lightboxDialog.close();
@@ -42,7 +82,7 @@ function openGallery(gallery) {
   galleryDialogMeta.textContent = `${gallery.count} image${gallery.count === 1 ? '' : 's'}`;
   galleryDialogGrid.innerHTML = '';
 
-  (gallery.images || []).forEach((image) => {
+  (gallery.images || []).forEach((image, index) => {
     const thumbnail = document.createElement('button');
     thumbnail.type = 'button';
     thumbnail.className = 'gallery-thumb';
@@ -54,7 +94,10 @@ function openGallery(gallery) {
     preview.loading = 'lazy';
 
     thumbnail.appendChild(preview);
-    thumbnail.addEventListener('click', () => openLightbox(image, `${gallery.name} gallery image`));
+    thumbnail.addEventListener('click', () => {
+      const images = (gallery.images || []).map((src) => ({ src, alt: `${gallery.name} gallery image` }));
+      openLightbox(image, `${gallery.name} gallery image`, { images, index });
+    });
     galleryDialogGrid.appendChild(thumbnail);
   });
 
@@ -88,6 +131,71 @@ if (lightboxDialog) {
 if (closeLightboxButton) {
   closeLightboxButton.addEventListener('click', closeLightbox);
 }
+
+if (prevLightboxButton) {
+  prevLightboxButton.addEventListener('click', () => {
+    if (currentLightboxImages.length < 2) return;
+    const nextIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+    showLightboxImage(nextIndex);
+  });
+}
+
+if (nextLightboxButton) {
+  nextLightboxButton.addEventListener('click', () => {
+    if (currentLightboxImages.length < 2) return;
+    const nextIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+    showLightboxImage(nextIndex);
+  });
+}
+
+if (lightboxPanel) {
+  lightboxPanel.addEventListener('touchstart', (event) => {
+    if (event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    touchTracking = true;
+  }, { passive: true });
+
+  lightboxPanel.addEventListener('touchend', (event) => {
+    if (!touchTracking || !event.changedTouches.length || currentLightboxImages.length < 2) {
+      touchTracking = false;
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+    touchTracking = false;
+
+    if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+    if (deltaX < 0) {
+      const nextIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+      showLightboxImage(nextIndex);
+      return;
+    }
+
+    const prevIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+    showLightboxImage(prevIndex);
+  }, { passive: true });
+}
+
+document.addEventListener('keydown', (event) => {
+  if (!lightboxDialog?.open || currentLightboxImages.length < 2) return;
+
+  if (event.key === 'ArrowLeft') {
+    event.preventDefault();
+    const prevIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+    showLightboxImage(prevIndex);
+  }
+
+  if (event.key === 'ArrowRight') {
+    event.preventDefault();
+    const nextIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+    showLightboxImage(nextIndex);
+  }
+});
 
 if (galleryDialog) {
   galleryDialog.addEventListener('click', (event) => {
