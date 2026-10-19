@@ -1,12 +1,12 @@
-const STORAGE_KEY = 'loved-images';
+const STORAGE_KEY = 'image-like-counts';
 
-async function readLovedImages(store) {
+async function readLikeCounts(store) {
   const value = await store.get(STORAGE_KEY, 'json');
-  return Array.isArray(value) ? value : [];
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 }
 
-async function writeLovedImages(store, lovedImages) {
-  await store.put(STORAGE_KEY, JSON.stringify(lovedImages));
+async function writeLikeCounts(store, likeCounts) {
+  await store.put(STORAGE_KEY, JSON.stringify(likeCounts));
 }
 
 export async function onRequestGet({ env }) {
@@ -15,7 +15,7 @@ export async function onRequestGet({ env }) {
   if (!store) {
     return Response.json(
       {
-        lovedImages: [],
+        likeCounts: {},
         message: 'LOVE_STORAGE binding is not configured for this Pages project.'
       },
       { status: 500 }
@@ -23,14 +23,14 @@ export async function onRequestGet({ env }) {
   }
 
   try {
-    const lovedImages = await readLovedImages(store);
-    return Response.json({ lovedImages });
+    const likeCounts = await readLikeCounts(store);
+    return Response.json({ likeCounts });
   } catch (error) {
-    console.error('love list error', error);
+    console.error('like count list error', error);
     return Response.json(
       {
-        lovedImages: [],
-        message: 'Unable to read shared likes.'
+        likeCounts: {},
+        message: 'Unable to read shared like counts.'
       },
       { status: 500 }
     );
@@ -43,7 +43,7 @@ export async function onRequestPost({ request, env }) {
   if (!store) {
     return Response.json(
       {
-        lovedImages: [],
+        likeCounts: {},
         message: 'LOVE_STORAGE binding is not configured for this Pages project.'
       },
       { status: 500 }
@@ -51,30 +51,35 @@ export async function onRequestPost({ request, env }) {
   }
 
   try {
-    const { src, loved } = await request.json();
+    const { src, delta } = await request.json();
 
     if (typeof src !== 'string' || !src.trim()) {
       return Response.json({ message: 'A valid image source is required.' }, { status: 400 });
     }
 
-    const lovedImages = new Set(await readLovedImages(store));
-
-    if (loved) {
-      lovedImages.add(src);
-    } else {
-      lovedImages.delete(src);
+    if (delta !== 1 && delta !== -1) {
+      return Response.json({ message: 'Delta must be 1 or -1.' }, { status: 400 });
     }
 
-    const updatedLovedImages = Array.from(lovedImages);
-    await writeLovedImages(store, updatedLovedImages);
+    const likeCounts = await readLikeCounts(store);
+    const current = Number.isFinite(likeCounts[src]) ? likeCounts[src] : 0;
+    const next = Math.max(0, current + delta);
 
-    return Response.json({ lovedImages: updatedLovedImages });
+    if (next === 0) {
+      delete likeCounts[src];
+    } else {
+      likeCounts[src] = next;
+    }
+
+    await writeLikeCounts(store, likeCounts);
+
+    return Response.json({ likeCounts, count: next });
   } catch (error) {
-    console.error('love save error', error);
+    console.error('like count save error', error);
     return Response.json(
       {
-        lovedImages: [],
-        message: 'Unable to save shared likes.'
+        likeCounts: {},
+        message: 'Unable to save shared like count.'
       },
       { status: 500 }
     );

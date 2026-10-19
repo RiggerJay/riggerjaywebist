@@ -315,6 +315,7 @@ h1 {
 }
 
 .image-action {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -332,6 +333,21 @@ h1 {
   width: 18px;
   height: 18px;
   display: block;
+}
+
+.like-count {
+  position: absolute;
+  right: -5px;
+  bottom: -4px;
+  min-width: 16px;
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: rgba(10, 12, 15, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--text);
+  font-size: 0.6rem;
+  line-height: 1.1;
+  text-align: center;
 }
 
 .image-action:hover {

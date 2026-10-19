@@ -16,6 +16,7 @@ const loveLightboxButton = document.querySelector('#loveLightbox');
 const shareLightboxButton = document.querySelector('#shareLightbox');
 
 const lovedImagesEndpoint = '/api/loves';
+const likedImagesStorageKey = 'riggerjay-liked-images';
 
 let currentLightboxImages = [];
 let currentLightboxIndex = -1;
@@ -24,19 +25,61 @@ let currentLightboxShareButton = null;
 let touchStartX = 0;
 let touchStartY = 0;
 let touchTracking = false;
-let sharedLovedImages = new Set();
-let sharedLovedImagesLoaded = false;
+let likeCounts = {};
+let likeCountsLoaded = false;
+let likedImages = new Set();
 
-async function loadSharedLovedImages() {
+function readLikedImages() {
+  try {
+    const value = window.localStorage.getItem(likedImagesStorageKey);
+    const parsed = value ? JSON.parse(value) : [];
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeLikedImages(nextLikedImages) {
+  try {
+    window.localStorage.setItem(likedImagesStorageKey, JSON.stringify(Array.from(nextLikedImages)));
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+function getLikeCount(src) {
+  return Number.isFinite(likeCounts[src]) ? likeCounts[src] : 0;
+}
+
+function updateLoveCount(button, count) {
+  if (!button) return;
+
+  const countNode = button.querySelector('.like-count');
+  if (!countNode) return;
+  countNode.textContent = String(Math.max(0, count));
+}
+
+function syncLoveButtonsForImage(src) {
+  const loved = likedImages.has(src);
+  const count = getLikeCount(src);
+
+  document.querySelectorAll('.love-action[data-love-src]').forEach((button) => {
+    if (button.dataset.loveSrc !== src) return;
+    updateLoveButton(button, loved);
+    updateLoveCount(button, count);
+  });
+}
+
+async function loadLikeCounts() {
   try {
     const response = await fetch(lovedImagesEndpoint);
     if (!response.ok) {
-      throw new Error('Unable to load shared likes');
+      throw new Error('Unable to load like counts');
     }
 
     const payload = await response.json();
-    sharedLovedImages = new Set(Array.isArray(payload.lovedImages) ? payload.lovedImages : []);
-    sharedLovedImagesLoaded = true;
+    likeCounts = payload.likeCounts && typeof payload.likeCounts === 'object' ? payload.likeCounts : {};
+    likeCountsLoaded = true;
     return true;
   } catch {
     return false;
@@ -44,17 +87,18 @@ async function loadSharedLovedImages() {
 }
 
 function isLoved(src) {
-  return sharedLovedImages.has(src);
+  return likedImages.has(src);
 }
 
 async function setLoved(src, loved) {
-  if (sharedLovedImagesLoaded) {
-    if (loved) {
-      sharedLovedImages.add(src);
-    } else {
-      sharedLovedImages.delete(src);
-    }
+  if (loved) {
+    likedImages.add(src);
+  } else {
+    likedImages.delete(src);
   }
+  writeLikedImages(likedImages);
+
+  const delta = loved ? 1 : -1;
 
   try {
     const response = await fetch(lovedImagesEndpoint, {
@@ -62,7 +106,7 @@ async function setLoved(src, loved) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ src, loved })
+      body: JSON.stringify({ src, delta })
     });
 
     if (!response.ok) {
@@ -70,10 +114,21 @@ async function setLoved(src, loved) {
     }
 
     const payload = await response.json();
-    sharedLovedImages = new Set(Array.isArray(payload.lovedImages) ? payload.lovedImages : []);
-    sharedLovedImagesLoaded = true;
+    likeCounts = payload.likeCounts && typeof payload.likeCounts === 'object' ? payload.likeCounts : likeCounts;
+    likeCountsLoaded = true;
+    if (typeof payload.count === 'number') {
+      likeCounts[src] = payload.count;
+    }
+    syncLoveButtonsForImage(src);
     return true;
   } catch {
+    if (loved) {
+      likedImages.delete(src);
+    } else {
+      likedImages.add(src);
+    }
+    writeLikedImages(likedImages);
+    syncLoveButtonsForImage(src);
     return false;
   }
 }
@@ -136,6 +191,10 @@ function showLightboxImage(index) {
   updateLightboxNavigation();
 
   const loved = isLoved(image.src);
+  if (currentLightboxLoveButton) {
+    currentLightboxLoveButton.dataset.loveSrc = image.src;
+    updateLoveCount(currentLightboxLoveButton, getLikeCount(image.src));
+  }
   updateLoveButton(currentLightboxLoveButton, loved);
 }
 
@@ -203,8 +262,10 @@ function openGallery(gallery) {
     const loveButton = document.createElement('button');
     loveButton.type = 'button';
     loveButton.className = 'image-action love-action gallery-thumb-love';
-    loveButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.7-4.3-9.4-8.2C.4 9.4 1 5.8 3.7 4.2c2.2-1.3 4.8-.8 6.3 1 1.5-1.8 4.1-2.3 6.3-1 2.7 1.6 3.3 5.2 1.1 8.6C18.7 16.7 12 21 12 21Z" fill="currentColor"/></svg>';
+    loveButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.7-4.3-9.4-8.2C.4 9.4 1 5.8 3.7 4.2c2.2-1.3 4.8-.8 6.3 1 1.5-1.8 4.1-2.3 6.3-1 2.7 1.6 3.3 5.2 1.1 8.6C18.7 16.7 12 21 12 21Z" fill="currentColor"/></svg><span class="like-count">0</span>';
+    loveButton.dataset.loveSrc = image;
     updateLoveButton(loveButton, isLoved(image));
+    updateLoveCount(loveButton, getLikeCount(image));
 
     const preview = document.createElement('img');
     preview.src = image;
@@ -221,9 +282,7 @@ function openGallery(gallery) {
       event.preventDefault();
       event.stopPropagation();
       const loved = !isLoved(image);
-      setLoved(image, loved).then((saved) => {
-        updateLoveButton(loveButton, saved ? loved : isLoved(image));
-      });
+      setLoved(image, loved);
     });
 
     thumbCard.appendChild(thumbnail);
@@ -345,9 +404,11 @@ if (closeGalleryDialogButton) {
 
 async function loadGalleries() {
   try {
-    const [response, lovesLoaded] = await Promise.all([
+    likedImages = readLikedImages();
+
+    const [response, likesLoaded] = await Promise.all([
       fetch('/api/galleries'),
-      loadSharedLovedImages()
+      loadLikeCounts()
     ]);
 
     if (!response.ok) {
@@ -355,8 +416,8 @@ async function loadGalleries() {
     }
 
     const payload = await response.json();
-    if (!lovesLoaded) {
-      sharedLovedImagesLoaded = true;
+    if (!likesLoaded) {
+      likeCountsLoaded = true;
     }
     renderFeaturedPhotos(payload.homepagePhotos || payload.featuredPhotos || []);
     renderGalleries(payload.galleries || []);
@@ -447,14 +508,14 @@ function renderGalleries(galleries) {
     }
 
     if (loveButton) {
+      loveButton.dataset.loveSrc = image.src;
       updateLoveButton(loveButton, isLoved(image.src));
+      updateLoveCount(loveButton, getLikeCount(image.src));
       loveButton.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
         const loved = !isLoved(image.src);
-        setLoved(image.src, loved).then((saved) => {
-          updateLoveButton(loveButton, saved ? loved : isLoved(image.src));
-        });
+        setLoved(image.src, loved);
       });
     }
 
@@ -477,9 +538,7 @@ if (loveLightboxButton) {
     const currentImage = getCurrentLightboxImage();
     if (!currentImage) return;
     const loved = !isLoved(currentImage.src);
-    setLoved(currentImage.src, loved).then((saved) => {
-      updateLoveButton(loveLightboxButton, saved ? loved : isLoved(currentImage.src));
-    });
+    setLoved(currentImage.src, loved);
   });
 }
 
