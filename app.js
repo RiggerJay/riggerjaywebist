@@ -4,6 +4,11 @@ const featuredGrid = document.querySelector('#featuredGrid');
 const lightboxDialog = document.querySelector('#imageDialog');
 const lightboxImage = document.querySelector('#dialogImage');
 const closeLightboxButton = document.querySelector('#closeDialog');
+const galleryDialog = document.querySelector('#galleryDialog');
+const galleryDialogTitle = document.querySelector('#galleryDialogTitle');
+const galleryDialogMeta = document.querySelector('#galleryDialogMeta');
+const galleryDialogGrid = document.querySelector('#galleryDialogGrid');
+const closeGalleryDialogButton = document.querySelector('#closeGalleryDialog');
 
 function openLightbox(src, alt = 'Full-size gallery image') {
   if (!lightboxDialog || !lightboxImage) return;
@@ -30,6 +35,48 @@ function closeLightbox() {
   lightboxDialog.removeAttribute('open');
 }
 
+function openGallery(gallery) {
+  if (!galleryDialog || !galleryDialogGrid || !galleryDialogTitle || !galleryDialogMeta) return;
+
+  galleryDialogTitle.textContent = gallery.name;
+  galleryDialogMeta.textContent = `${gallery.count} image${gallery.count === 1 ? '' : 's'}`;
+  galleryDialogGrid.innerHTML = '';
+
+  (gallery.images || []).forEach((image) => {
+    const thumbnail = document.createElement('button');
+    thumbnail.type = 'button';
+    thumbnail.className = 'gallery-thumb';
+    thumbnail.setAttribute('aria-label', `Open ${gallery.name} image`);
+
+    const preview = document.createElement('img');
+    preview.src = image;
+    preview.alt = `${gallery.name} gallery image`;
+    preview.loading = 'lazy';
+
+    thumbnail.appendChild(preview);
+    thumbnail.addEventListener('click', () => openLightbox(image, `${gallery.name} gallery image`));
+    galleryDialogGrid.appendChild(thumbnail);
+  });
+
+  if (typeof galleryDialog.showModal === 'function') {
+    galleryDialog.showModal();
+    return;
+  }
+
+  galleryDialog.setAttribute('open', 'open');
+}
+
+function closeGalleryDialog() {
+  if (!galleryDialog) return;
+
+  if (typeof galleryDialog.close === 'function') {
+    galleryDialog.close();
+    return;
+  }
+
+  galleryDialog.removeAttribute('open');
+}
+
 if (lightboxDialog) {
   lightboxDialog.addEventListener('click', (event) => {
     if (event.target === lightboxDialog) {
@@ -40,6 +87,18 @@ if (lightboxDialog) {
 
 if (closeLightboxButton) {
   closeLightboxButton.addEventListener('click', closeLightbox);
+}
+
+if (galleryDialog) {
+  galleryDialog.addEventListener('click', (event) => {
+    if (event.target === galleryDialog) {
+      closeGalleryDialog();
+    }
+  });
+}
+
+if (closeGalleryDialogButton) {
+  closeGalleryDialogButton.addEventListener('click', closeGalleryDialog);
 }
 
 async function loadGalleries() {
@@ -116,11 +175,14 @@ function renderGalleries(galleries) {
     image.alt = `${gallery.name} gallery`;
     title.textContent = gallery.name;
     meta.textContent = `${gallery.count} image${gallery.count === 1 ? '' : 's'}`;
-    image.addEventListener('click', () => openLightbox(image.src, image.alt));
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', `Open ${gallery.name} gallery`);
+    card.addEventListener('click', () => openGallery(gallery));
     card.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        openLightbox(image.src, image.alt);
+        openGallery(gallery);
       }
     });
 
