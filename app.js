@@ -12,12 +12,108 @@ const closeGalleryDialogButton = document.querySelector('#closeGalleryDialog');
 const lightboxPanel = document.querySelector('#lightboxPanel');
 const prevLightboxButton = document.querySelector('#prevLightbox');
 const nextLightboxButton = document.querySelector('#nextLightbox');
+const loveLightboxButton = document.querySelector('#loveLightbox');
+const shareLightboxButton = document.querySelector('#shareLightbox');
+
+const lovedImagesEndpoint = '/api/loves';
 
 let currentLightboxImages = [];
 let currentLightboxIndex = -1;
+let currentLightboxLoveButton = null;
+let currentLightboxShareButton = null;
 let touchStartX = 0;
 let touchStartY = 0;
 let touchTracking = false;
+let sharedLovedImages = new Set();
+let sharedLovedImagesLoaded = false;
+
+async function loadSharedLovedImages() {
+  try {
+    const response = await fetch(lovedImagesEndpoint);
+    if (!response.ok) {
+      throw new Error('Unable to load shared likes');
+    }
+
+    const payload = await response.json();
+    sharedLovedImages = new Set(Array.isArray(payload.lovedImages) ? payload.lovedImages : []);
+    sharedLovedImagesLoaded = true;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isLoved(src) {
+  return sharedLovedImages.has(src);
+}
+
+async function setLoved(src, loved) {
+  if (sharedLovedImagesLoaded) {
+    if (loved) {
+      sharedLovedImages.add(src);
+    } else {
+      sharedLovedImages.delete(src);
+    }
+  }
+
+  try {
+    const response = await fetch(lovedImagesEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ src, loved })
+    });
+
+    if (!response.ok) {
+      throw new Error('Unable to save shared like');
+    }
+
+    const payload = await response.json();
+    sharedLovedImages = new Set(Array.isArray(payload.lovedImages) ? payload.lovedImages : []);
+    sharedLovedImagesLoaded = true;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function updateLoveButton(button, loved) {
+  if (!button) return;
+
+  button.classList.toggle('is-loved', loved);
+  button.setAttribute('aria-pressed', loved ? 'true' : 'false');
+  button.title = loved ? 'Unlove image' : 'Love image';
+  button.setAttribute('aria-label', loved ? 'Unlove image' : 'Love image');
+}
+
+async function shareImage(src, title) {
+  const shareData = {
+    title,
+    text: title,
+    url: src,
+  };
+
+  try {
+    if (navigator.share) {
+      await navigator.share(shareData);
+      return;
+    }
+  } catch {
+    // Fall through to clipboard fallback.
+  }
+
+  try {
+    await navigator.clipboard.writeText(src);
+    return;
+  } catch {
+    window.prompt('Copy this image link', src);
+  }
+}
+
+function getCurrentLightboxImage() {
+  return currentLightboxImages[currentLightboxIndex] || null;
+}
 
 function updateLightboxNavigation() {
   if (!prevLightboxButton || !nextLightboxButton) return;
@@ -38,6 +134,9 @@ function showLightboxImage(index) {
   lightboxImage.src = image.src;
   lightboxImage.alt = image.alt;
   updateLightboxNavigation();
+
+  const loved = isLoved(image.src);
+  updateLoveButton(currentLightboxLoveButton, loved);
 }
 
 function openLightbox(src, alt = 'Full-size gallery image', options = {}) {
@@ -55,6 +154,9 @@ function openLightbox(src, alt = 'Full-size gallery image', options = {}) {
     : [{ src, alt }];
   currentLightboxIndex = activeIndex >= 0 ? activeIndex : 0;
 
+  currentLightboxLoveButton = loveLightboxButton;
+  currentLightboxShareButton = shareLightboxButton;
+
   showLightboxImage(currentLightboxIndex);
 
   if (typeof lightboxDialog.showModal === 'function') {
@@ -70,6 +172,8 @@ function closeLightbox() {
 
   currentLightboxImages = [];
   currentLightboxIndex = -1;
+  currentLightboxLoveButton = null;
+  currentLightboxShareButton = null;
   updateLightboxNavigation();
 
   if (typeof lightboxDialog.close === 'function') {
@@ -88,10 +192,19 @@ function openGallery(gallery) {
   galleryDialogGrid.innerHTML = '';
 
   (gallery.images || []).forEach((image, index) => {
+    const thumbCard = document.createElement('div');
+    thumbCard.className = 'gallery-thumb-card';
+
     const thumbnail = document.createElement('button');
     thumbnail.type = 'button';
     thumbnail.className = 'gallery-thumb';
     thumbnail.setAttribute('aria-label', `Open ${gallery.name} image`);
+
+    const loveButton = document.createElement('button');
+    loveButton.type = 'button';
+    loveButton.className = 'image-action love-action gallery-thumb-love';
+    loveButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.7-4.3-9.4-8.2C.4 9.4 1 5.8 3.7 4.2c2.2-1.3 4.8-.8 6.3 1 1.5-1.8 4.1-2.3 6.3-1 2.7 1.6 3.3 5.2 1.1 8.6C18.7 16.7 12 21 12 21Z" fill="currentColor"/></svg>';
+    updateLoveButton(loveButton, isLoved(image));
 
     const preview = document.createElement('img');
     preview.src = image;
@@ -103,7 +216,19 @@ function openGallery(gallery) {
       const images = (gallery.images || []).map((src) => ({ src, alt: `${gallery.name} gallery image` }));
       openLightbox(image, `${gallery.name} gallery image`, { images, index });
     });
-    galleryDialogGrid.appendChild(thumbnail);
+
+    loveButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const loved = !isLoved(image);
+      setLoved(image, loved).then((saved) => {
+        updateLoveButton(loveButton, saved ? loved : isLoved(image));
+      });
+    });
+
+    thumbCard.appendChild(thumbnail);
+    thumbCard.appendChild(loveButton);
+    galleryDialogGrid.appendChild(thumbCard);
   });
 
   if (typeof galleryDialog.showModal === 'function') {
@@ -220,12 +345,19 @@ if (closeGalleryDialogButton) {
 
 async function loadGalleries() {
   try {
-    const response = await fetch('/api/galleries');
+    const [response, lovesLoaded] = await Promise.all([
+      fetch('/api/galleries'),
+      loadSharedLovedImages()
+    ]);
+
     if (!response.ok) {
       throw new Error('Failed to load gallery data');
     }
 
     const payload = await response.json();
+    if (!lovesLoaded) {
+      sharedLovedImagesLoaded = true;
+    }
     renderFeaturedPhotos(payload.homepagePhotos || payload.featuredPhotos || []);
     renderGalleries(payload.galleries || []);
   } catch (error) {
@@ -287,6 +419,11 @@ function renderGalleries(galleries) {
     const title = clone.querySelector('h3');
     const meta = clone.querySelector('.meta');
     const card = clone.querySelector('.gallery-card');
+    const loveButton = clone.querySelector('.love-action');
+    const shareButton = clone.querySelector('.share-action');
+    const imageActions = clone.querySelector('.image-actions');
+
+    const galleryImages = (gallery.images || []).map((src) => ({ src, alt: `${gallery.name} gallery image` }));
 
     image.src = gallery.cover || '/placeholder.svg';
     image.alt = `${gallery.name} gallery`;
@@ -303,7 +440,56 @@ function renderGalleries(galleries) {
       }
     });
 
+    if (imageActions) {
+      imageActions.addEventListener('click', (event) => {
+        event.stopPropagation();
+      });
+    }
+
+    if (loveButton) {
+      updateLoveButton(loveButton, isLoved(image.src));
+      loveButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const loved = !isLoved(image.src);
+        setLoved(image.src, loved).then((saved) => {
+          updateLoveButton(loveButton, saved ? loved : isLoved(image.src));
+        });
+      });
+    }
+
+    if (shareButton) {
+      shareButton.addEventListener('click', async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        await shareImage(image.src, `${gallery.name} gallery image`);
+      });
+    }
+
     galleryGrid.appendChild(clone);
+  });
+}
+
+if (loveLightboxButton) {
+  loveLightboxButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const currentImage = getCurrentLightboxImage();
+    if (!currentImage) return;
+    const loved = !isLoved(currentImage.src);
+    setLoved(currentImage.src, loved).then((saved) => {
+      updateLoveButton(loveLightboxButton, saved ? loved : isLoved(currentImage.src));
+    });
+  });
+}
+
+if (shareLightboxButton) {
+  shareLightboxButton.addEventListener('click', async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const currentImage = getCurrentLightboxImage();
+    if (!currentImage) return;
+    await shareImage(currentImage.src, currentImage.alt || 'Full-size gallery image');
   });
 }
 

@@ -8,3 +8,9 @@ bucket_name = "riggerjayphotography"
 [vars]
 PUBLIC_R2_BASE_URL = "https://photos.riggerjay.com"
 SITE_TITLE = "RiggerJay Photography"
+
+# Shared likes storage.
+[[kv_namespaces]]
+binding = "LOVE_STORAGE"
+id = "5a370000021b416caa5e022abe8795b8"
+preview_id = "01d5489ddbdd4f058aedd838a1d9efb6"

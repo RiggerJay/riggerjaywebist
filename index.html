@@ -135,6 +135,18 @@
     <template id="galleryCardTemplate">
       <article class="gallery-card">
         <div class="image-wrap">
+          <div class="image-actions" aria-label="Image actions">
+            <button class="image-action love-action" type="button" aria-label="Love image" title="Love image">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 21s-6.7-4.3-9.4-8.2C.4 9.4 1 5.8 3.7 4.2c2.2-1.3 4.8-.8 6.3 1 1.5-1.8 4.1-2.3 6.3-1 2.7 1.6 3.3 5.2 1.1 8.6C18.7 16.7 12 21 12 21Z" fill="currentColor"/>
+              </svg>
+            </button>
+            <button class="image-action share-action" type="button" aria-label="Share image" title="Share image">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M16 8a3 3 0 1 0-2.9-3.7l-6 3.2a3 3 0 1 0 0 4.9l6 3.2A3 3 0 1 0 14 14l-6-3.2a3 3 0 0 0 0-.6L14 7a3 3 0 0 0 2 1Z" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
           <img src="" alt="" loading="lazy" />
         </div>
         <div class="card-body">
@@ -147,6 +159,18 @@
     <dialog id="imageDialog" class="image-dialog" aria-label="Full-size image preview">
       <div id="lightboxPanel" class="dialog-panel">
         <button id="closeDialog" class="dialog-close" type="button" aria-label="Close image preview">×</button>
+        <div class="lightbox-actions" aria-label="Image actions">
+          <button id="loveLightbox" class="image-action love-action" type="button" aria-label="Love image" title="Love image">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21s-6.7-4.3-9.4-8.2C.4 9.4 1 5.8 3.7 4.2c2.2-1.3 4.8-.8 6.3 1 1.5-1.8 4.1-2.3 6.3-1 2.7 1.6 3.3 5.2 1.1 8.6C18.7 16.7 12 21 12 21Z" fill="currentColor"/>
+            </svg>
+          </button>
+          <button id="shareLightbox" class="image-action share-action" type="button" aria-label="Share image" title="Share image">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M16 8a3 3 0 1 0-2.9-3.7l-6 3.2a3 3 0 1 0 0 4.9l6 3.2A3 3 0 1 0 14 14l-6-3.2a3 3 0 0 0 0-.6L14 7a3 3 0 0 0 2 1Z" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
         <button id="prevLightbox" class="lightbox-nav lightbox-prev" type="button" aria-label="Previous image">‹</button>
         <img id="dialogImage" src="" alt="Full-size gallery image" />
         <button id="nextLightbox" class="lightbox-nav lightbox-next" type="button" aria-label="Next image">›</button>

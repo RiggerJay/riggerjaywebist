@@ -1,6 +1,6 @@
 # RiggerJay Photography
 
-This project is a lightweight Cloudflare Pages app for a photography portfolio. It reads the folders in the R2 bucket and renders each subfolder as a gallery.
+This project is a lightweight Cloudflare Pages app for a photography portfolio. It reads the folders in the R2 bucket and renders each subfolder as a gallery. Shared "love" state is stored in Cloudflare KV so everyone sees the same likes.
 
 ## How it works
 
@@ -19,7 +19,18 @@ This project is a lightweight Cloudflare Pages app for a photography portfolio. 
    - Name: `PUBLIC_R2_BASE_URL`
    - Value: `https://riggerjayphotography.r2.dev`
    - If you use a custom domain for R2, set that instead.
-4. Deploy the project to Cloudflare Pages.
+4. Create a Cloudflare KV namespace for shared likes.
+  - Name the binding `LOVE_STORAGE`
+  - Bind it to both your production and preview environments
+5. Deploy the project to Cloudflare Pages.
+
+## Shared likes
+
+The love button is shared across visitors by storing image URLs in KV under the `LOVE_STORAGE` binding.
+
+- If the KV binding is missing, the app will still load, but likes will not persist.
+- The shared likes list is global for the site, not per-user.
+- If you want user-specific likes later, that would require auth and a user-aware data store.
 
 ## Folder structure
 
