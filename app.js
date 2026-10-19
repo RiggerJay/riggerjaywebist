@@ -70,6 +70,20 @@ function syncLoveButtonsForImage(src) {
   });
 }
 
+function normalizeLikedImagesWithCounts() {
+  let updated = false;
+
+  likedImages.forEach((src) => {
+    if (getLikeCount(src) > 0) return;
+    likedImages.delete(src);
+    updated = true;
+  });
+
+  if (updated) {
+    writeLikedImages(likedImages);
+  }
+}
+
 async function loadLikeCounts() {
   try {
     const response = await fetch(lovedImagesEndpoint);
@@ -79,6 +93,7 @@ async function loadLikeCounts() {
 
     const payload = await response.json();
     likeCounts = payload.likeCounts && typeof payload.likeCounts === 'object' ? payload.likeCounts : {};
+    normalizeLikedImagesWithCounts();
     likeCountsLoaded = true;
     return true;
   } catch {
@@ -91,6 +106,8 @@ function isLoved(src) {
 }
 
 async function setLoved(src, loved) {
+  const previousCount = getLikeCount(src);
+
   if (loved) {
     likedImages.add(src);
   } else {
@@ -99,6 +116,11 @@ async function setLoved(src, loved) {
   writeLikedImages(likedImages);
 
   const delta = loved ? 1 : -1;
+  likeCounts[src] = Math.max(0, previousCount + delta);
+  if (likeCounts[src] === 0) {
+    delete likeCounts[src];
+  }
+  syncLoveButtonsForImage(src);
 
   try {
     const response = await fetch(lovedImagesEndpoint, {
@@ -122,6 +144,12 @@ async function setLoved(src, loved) {
     syncLoveButtonsForImage(src);
     return true;
   } catch {
+    if (previousCount === 0) {
+      delete likeCounts[src];
+    } else {
+      likeCounts[src] = previousCount;
+    }
+
     if (loved) {
       likedImages.delete(src);
     } else {
