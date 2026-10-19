@@ -34,6 +34,7 @@ function showLightboxImage(index) {
 
   currentLightboxIndex = index;
   const image = currentLightboxImages[index];
+  lightboxImage.removeAttribute('src');
   lightboxImage.src = image.src;
   lightboxImage.alt = image.alt;
   updateLightboxNavigation();
@@ -41,6 +42,10 @@ function showLightboxImage(index) {
 
 function openLightbox(src, alt = 'Full-size gallery image', options = {}) {
   if (!lightboxDialog || !lightboxImage) return;
+
+  if (galleryDialog?.open) {
+    closeGalleryDialog();
+  }
 
   const imageList = Array.isArray(options.images) ? options.images : [];
   const activeIndex = typeof options.index === 'number' ? options.index : imageList.findIndex((image) => image.src === src);
@@ -133,7 +138,9 @@ if (closeLightboxButton) {
 }
 
 if (prevLightboxButton) {
-  prevLightboxButton.addEventListener('click', () => {
+  prevLightboxButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (currentLightboxImages.length < 2) return;
     const nextIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
     showLightboxImage(nextIndex);
@@ -141,7 +148,9 @@ if (prevLightboxButton) {
 }
 
 if (nextLightboxButton) {
-  nextLightboxButton.addEventListener('click', () => {
+  nextLightboxButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (currentLightboxImages.length < 2) return;
     const nextIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
     showLightboxImage(nextIndex);

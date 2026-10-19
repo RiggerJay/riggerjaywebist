@@ -248,7 +248,7 @@ h1 {
 }
 
 .image-wrap {
-  aspect-ratio: 41 / 20;
+  aspect-ratio: 4 / 1;
   overflow: hidden;
   background: #0a0c0f;
 }
