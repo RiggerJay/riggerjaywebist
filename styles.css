@@ -200,6 +200,11 @@ h1 {
   min-height: 440px;
 }
 
+.featured-item {
+  position: relative;
+  min-height: 120px;
+}
+
 .mini-grid .featured-tile,
 .mini-grid .placeholder {
   display: block;
@@ -210,6 +215,12 @@ h1 {
   min-height: 120px;
 }
 
+.featured-item .featured-tile {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
 .mini-grid .tall {
   min-height: 200px;
 }
@@ -217,6 +228,14 @@ h1 {
 .mini-grid .wide {
   grid-column: 1 / span 2;
   min-height: 180px;
+}
+
+.featured-love {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 34px;
+  height: 34px;
 }
 
 .gallery-section {

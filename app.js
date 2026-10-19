@@ -450,14 +450,34 @@ function renderFeaturedPhotos(images) {
   const tiles = images.slice(0, 4);
 
   tiles.forEach((image, index) => {
+    const tileWrap = document.createElement('div');
+    tileWrap.className = `featured-item${index === 1 || index === 3 ? ' tall' : ''}${index === 2 ? ' wide' : ''}`;
+
     const tile = document.createElement('button');
     tile.type = 'button';
-    tile.className = `featured-tile${index === 1 || index === 3 ? ' tall' : ''}${index === 2 ? ' wide' : ''}`;
+    tile.className = 'featured-tile';
     tile.style.backgroundImage = `url("${image}")`;
     tile.title = 'Open featured photo';
     tile.setAttribute('aria-label', 'Open featured photo');
     tile.addEventListener('click', () => openLightbox(image, 'Featured photo'));
-    featuredGrid.appendChild(tile);
+
+    const loveButton = document.createElement('button');
+    loveButton.type = 'button';
+    loveButton.className = 'image-action love-action featured-love';
+    loveButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.7-4.3-9.4-8.2C.4 9.4 1 5.8 3.7 4.2c2.2-1.3 4.8-.8 6.3 1 1.5-1.8 4.1-2.3 6.3-1 2.7 1.6 3.3 5.2 1.1 8.6C18.7 16.7 12 21 12 21Z" fill="currentColor"/></svg><span class="like-count">0</span>';
+    loveButton.dataset.loveSrc = image;
+    updateLoveButton(loveButton, isLoved(image));
+    updateLoveCount(loveButton, getLikeCount(image));
+    loveButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const loved = !isLoved(image);
+      setLoved(image, loved);
+    });
+
+    tileWrap.appendChild(tile);
+    tileWrap.appendChild(loveButton);
+    featuredGrid.appendChild(tileWrap);
   });
 }
 
