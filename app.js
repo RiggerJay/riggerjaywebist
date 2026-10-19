@@ -143,20 +143,9 @@ async function setLoved(src, loved) {
     }
     syncLoveButtonsForImage(src);
     return true;
-  } catch {
-    if (previousCount === 0) {
-      delete likeCounts[src];
-    } else {
-      likeCounts[src] = previousCount;
-    }
-
-    if (loved) {
-      likedImages.delete(src);
-    } else {
-      likedImages.add(src);
-    }
-    writeLikedImages(likedImages);
-    syncLoveButtonsForImage(src);
+  } catch (error) {
+    // Keep the optimistic UI state so user feedback is stable even if shared sync is temporarily unavailable.
+    console.warn('Like sync failed; keeping local state', error);
     return false;
   }
 }
